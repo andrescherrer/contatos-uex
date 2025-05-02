@@ -1,0 +1,83 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - user=contato_user
+        - uid=1000
+    image: contatos-app
+    container_name: contatos-app
+    restart: unless-stopped
+    working_dir: /var/www/html
+    volumes:
+      - ./:/var/www/html
+    networks:
+      - contatos-network
+
+  webserver:
+    image: nginx:alpine
+    container_name: contatos-webserver
+    restart: unless-stopped
+    ports:
+      - "8888:80"
+    volumes:
+      - ./:/var/www/html
+      - ./docker/nginx/conf.d:/etc/nginx/conf.d
+    networks:
+      - contatos-network
+    depends_on:
+      - app
+
+  db:
+    image: mysql:8.0
+    container_name: contatos-db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: contatos
+      MYSQL_USER: contatos_user
+      MYSQL_PASSWORD: s3cr3t
+      MYSQL_ROOT_PASSWORD: s3cr3t
+    volumes:
+      - dbdata:/var/lib/mysql
+    ports:
+      - "3366:3306"
+    networks:
+      - contatos-network
+
+  composer:
+    image: composer:2
+    container_name: contatos-composer
+    volumes:
+      - ./:/var/www/html
+    working_dir: /var/www/html
+    depends_on:
+      - db
+    networks:
+      - contatos-network
+
+  artisan:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - user=contato_user
+        - uid=1000
+    image: contatos-app
+    container_name: contatos-artisan
+    depends_on:
+      - db
+    working_dir: /var/www/html
+    entrypoint: ['php', '/var/www/html/artisan']
+    volumes:
+      - ./:/var/www/html
+    networks:
+      - contatos-network
+
+volumes:
+  dbdata:
+    driver: local
+
+networks:
+  contatos-network:
+    driver: bridge
