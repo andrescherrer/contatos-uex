@@ -38,3 +38,7 @@ composer install
 ```sh
 php artisan migrate
 ```
+### Acessar projeto pelo Navegador:
+```sh
+http://localhost:8888
+```
