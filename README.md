@@ -14,7 +14,7 @@ cd contatos
 ```sh
 cp .env.example .env
 ```
-### Fazer bild das imagens e subir os containers
+### Fazer build das imagens e subir os containers
 ```sh
 docker compose up --build -d
 ```
